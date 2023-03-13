@@ -18,6 +18,7 @@ class ConfigCast(BaseModel):
     EXCEPTION_SHOW: bool
     EMAIL_ERROR_LOG: bool
     EMAIL_EVENT_LOG: bool
+    CHUNK_SIZE: int
     # .env.secret
     EMRE_SMTP_PORT: int
 
