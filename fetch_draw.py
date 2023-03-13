@@ -9,6 +9,49 @@ import pandas as pd
 from datetime import datetime
 
 
+def get_to_db(game=cfg.config['DEFAULT_GAME'], size=cfg.config['DEFAULT_GAME']):
+    pass
+    # --- check if db exists
+
+    # get data to build request
+
+    with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+        request_data = json.load(j_file)
+
+        request_data['query_strings']['game'] = game
+
+    with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+        j_requests = json.load(j_file)
+
+    # get last draw
+
+    response = requests.get(request_data['base_url'], headers=j_requests['headers'],
+                            params=request_data['query_strings'])
+
+    # check response.status_code, if not 200, raise Exception - CustomError
+
+    if response.status_code != 200:
+        message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+        raise event_report.CustomError(message)
+
+    # get last drawSystemId
+
+    last_game = response.json()
+
+    # check if drawSystemId is None, if yes, probably update after draw in lotto system
+    # if not None get draw  ID and draw date
+
+    if last_game['items'][0]['drawSystemId'] is None:
+        message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
+        raise event_report.CustomError(message)
+
+    last_game_id = last_game['items'][0]['drawSystemId']
+    last_draw_date = last_game['items'][0]['drawDate']
+
+
+
+
+
 # file names for game data: gameName_base.json, gameName.json, gameName.csv
 # function save_json_csv() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
 # e.g. specialResults
@@ -21,7 +64,7 @@ from datetime import datetime
 # For e.g. Szybkie600 returns error: {"code":500,"message":"Internal server error"} (approx. 300k results).
 # It will be fixed in the version of the function for the database, by sequential fetching.
 
-def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
+def get_to_json(game=cfg.config['DEFAULT_GAME'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['BASE_FILE']):
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -165,13 +208,13 @@ with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_
     j_data = json.load(j_file)
 
 for key in j_data['game_type'].keys():
-    get(game=key)
+    get_to_json(game=key)
 
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
 
-def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
+def save_json_csv(game=cfg.config['DEFAULT_GAME'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['BASE_FILE']):
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -205,8 +248,8 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
         for i in range(len(j_draws['items'])):
 
             date_time_object = datetime.strptime(j_draws['items'][i]['results'][0]['drawDate'],
-                                                 cfg.config['date_time_format'])
-            draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+                                                 cfg.config['DATE_TIME_FORMAT'])
+            draw_date = date_time_object.strftime(cfg.config['DATE_STORE_FORMAT'])
             draw_time = date_time_object.strftime(cfg.config['time_store_format'])
 
             draw_lotto_list.append({'drawSystemId': j_draws['items'][i]['results'][0]['drawSystemId'],
@@ -219,8 +262,8 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
 
             if len(j_draws['items'][i]['results']) != 1:
                 date_time_object = datetime.strptime(j_draws['items'][i]['results'][1]['drawDate'],
-                                                     cfg.config['date_time_format'])
-                draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+                                                     cfg.config['DATE_TIME_FORMAT'])
+                draw_date = date_time_object.strftime(cfg.config['DATE_STORE_FORMAT'])
                 draw_time = date_time_object.strftime(cfg.config['time_store_format'])
 
                 draw_lotto_plus_list.append({'drawSystemId': j_draws['items'][i]['results'][1]['drawSystemId'],
