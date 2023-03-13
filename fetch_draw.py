@@ -7,6 +7,7 @@ import json
 import ijson
 import pandas as pd
 from datetime import datetime
+import psycopg  # psycopg3.1.8
 
 # function check_last_draw() checks last draw date and id for games subtypes from draw_config.json
 # returns dictionary e.g.:
@@ -58,8 +59,22 @@ def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
 
     return last_game_subtype_dict
 
+def check_last_draw_db(game_subtype):
 
-# check last draws for games subtypes
+    conn = psycopg.connect(**cfg.db_config)
+
+    cur = conn.cursor()
+    cur.execute('SELECT MAX (draw_id) FROM lotto')
+    last_draw_id = cur.fetchone()
+
+    print(last_draw_id[0])
+
+
+check_last_draw_db(game_subtype='lotto')
+
+
+
+# check last draws for games subtypes in draw_config.json
 
 # with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
 #     j_data = json.load(j_file)
