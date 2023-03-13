@@ -7,6 +7,7 @@ import json
 import ijson
 import pandas as pd
 from datetime import datetime
+from inflection import underscore
 import psycopg  # psycopg3.1.8
 
 # function check_last_draw() checks last draw date and id for games subtypes from draw_config.json
@@ -72,6 +73,7 @@ def check_last_draw_db(game_subtype):
 
 check_last_draw_db(game_subtype='lotto')
 
+print(underscore('ExtraPensja'))
 
 
 # check last draws for games subtypes in draw_config.json
