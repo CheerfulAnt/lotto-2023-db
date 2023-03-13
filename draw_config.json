@@ -1,48 +1,48 @@
 {
-	"last_run_get": "2023-03-12T21:37:27",
-	"base_url": "https://www.lotto.pl/api/lotteries/draw-results/by-gametype",
-	"query_strings": {
-		"game": "",
-		"index": 1,
-		"size": 1,
-		"sort": "drawDate",
-		"order": "DESC"
-	},
-	"game_type": {
-		"Lotto": {
-			"draw_days": {},
-			"game_subtype": {
-				"Lotto": {
-					"last_system_id": 6855,
-					"last_draw_date": "2023-03-11T22:00:00Z"
-				},
-				"LottoPlus": {
-					"last_system_id": 6855,
-					"last_draw_date": "2023-03-11T22:00:00Z"
-				}
-			}
-		},
-		"Szybkie600": {
-			"draw_days": {},
-			"game_subtype": {
-				"Szybkie600": {
-					"last_system_id": "",
-					"last_draw_date": ""
-				}
-			}
-		},
-		"EkstraPremia": {
-			"draw_days": {},
-			"game_subtype": {
-				"EkstraPremia": {
-					"last_system_id": 2499,
-					"last_draw_date": "2023-03-11T22:00:00Z"
-				},
-				"EkstraPensja": {
-					"last_system_id": 2499,
-					"last_draw_date": "2023-03-11T22:00:00Z"
-				}
-			}
-		}
-	}
+    "last_run_get": "2023-03-13T22:45:57",
+    "base_url": "https://www.lotto.pl/api/lotteries/draw-results/by-gametype",
+    "query_strings": {
+        "game": "",
+        "index": 1,
+        "size": 1,
+        "sort": "drawDate",
+        "order": "DESC"
+    },
+    "game_type": {
+        "Lotto": {
+            "draw_days": {},
+            "game_subtype": {
+                "Lotto": {
+                    "last_system_id": 6855,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                },
+                "LottoPlus": {
+                    "last_system_id": 6855,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                }
+            }
+        },
+        "Szybkie600": {
+            "draw_days": {},
+            "game_subtype": {
+                "Szybkie600": {
+                    "last_system_id": "",
+                    "last_draw_date": ""
+                }
+            }
+        },
+        "EkstraPremia": {
+            "draw_days": {},
+            "game_subtype": {
+                "EkstraPremia": {
+                    "last_system_id": 2499,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                },
+                "EkstraPensja": {
+                    "last_system_id": 2499,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                }
+            }
+        }
+    }
 }
