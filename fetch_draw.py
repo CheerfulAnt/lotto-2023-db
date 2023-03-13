@@ -8,50 +8,69 @@ import ijson
 import pandas as pd
 from datetime import datetime
 
+# function check_last_draw() checks last draw date and id for games subtypes from draw_config.json
+# returns dictionary e.g.:
+# {'Lotto': (6855, '2023-03-11T22:00:00Z'), 'LottoPlus': (6855, '2023-03-11T22:00:00Z')}
+# {'Szybkie600': (295836, '2023-03-13T22:40:00Z')}
+# {'EkstraPremia': (2500, '2023-03-12T22:00:00Z'), 'EkstraPensja': (2500, '2023-03-12T22:00:00Z')}
 
-def get_to_db(game=cfg.config['DEFAULT_GAME'], size=cfg.config['DEFAULT_GAME']):
-    pass
-    # --- check if db exists
+def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
 
-    # get data to build request
+    # # get data to build request
+    #
+    # with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+    #     request_data = json.load(j_file)
+    #
+    #     request_data['query_strings']['game'] = game_type
+    #
+    # with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+    #     j_requests = json.load(j_file)
+    #
+    # # get last draw
+    #
+    # response = requests.get(request_data['base_url'], headers=j_requests['headers'],
+    #                         params=request_data['query_strings'])
+    #
+    # # check response.status_code, if not 200, raise Exception - CustomError
+    #
+    # if response.status_code != 200:
+    #     message = 'Game "' + game_type + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+    #     raise event_report.CustomError(message)
+    #
+    # # get last drawSystemId
+    #
+    # last_game = response.json()
+    #
+    # # check if drawSystemId is None, if yes, probably update after draw in lotto system
+    # # if not None get draw  ID and draw date
+    #
+    # if last_game['items'][0]['drawSystemId'] is None:
+    #     message = 'Game "' + game_type + '" - Cannot fetch json data, drawSystemId is None.'
+    #     raise event_report.CustomError(message)
+    #
+    # last_game_subtype_dict = dict()
+    #
+    # for i in range(len(last_game['items'][0]['results'])):
+    #     last_game_subtype_dict[last_game['items'][0]['results'][i]['gameType']] = \
+    #         (last_game['items'][0]['results'][i]['drawSystemId'], last_game['items'][0]['results'][i]['drawDate'])
 
-    with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-        request_data = json.load(j_file)
+    last_game_subtype_dict ={'Lotto': (6855, '2023-03-11T22:00:00Z'), 'LottoPlus': (6855, '2023-03-11T22:00:00Z')}
 
-        request_data['query_strings']['game'] = game
+    return last_game_subtype_dict
 
-    with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-        j_requests = json.load(j_file)
 
-    # get last draw
+# check last draws for games subtypes
 
-    response = requests.get(request_data['base_url'], headers=j_requests['headers'],
-                            params=request_data['query_strings'])
-
-    # check response.status_code, if not 200, raise Exception - CustomError
-
-    if response.status_code != 200:
-        message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
-        raise event_report.CustomError(message)
-
-    # get last drawSystemId
-
-    last_game = response.json()
-
-    # check if drawSystemId is None, if yes, probably update after draw in lotto system
-    # if not None get draw  ID and draw date
-
-    if last_game['items'][0]['drawSystemId'] is None:
-        message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
-        raise event_report.CustomError(message)
-
-    last_game_id = last_game['items'][0]['drawSystemId']
-    last_draw_date = last_game['items'][0]['drawDate']
+# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+#     j_data = json.load(j_file)
+#
+# for key in j_data['game_type'].keys():
+#     print(check_last_draw(game_type=key))
 
 
 
 
-
+# do not call get_to_json(), this will kill draw_config.json :-)
 # file names for game data: gameName_base.json, gameName.json, gameName.csv
 # function save_json_csv() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
 # e.g. specialResults
@@ -204,11 +223,13 @@ def get_to_json(game=cfg.config['DEFAULT_GAME'], file_dir=cfg.config['DATA_DIR']
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-    j_data = json.load(j_file)
+# do not call get_to_json(), this will kill draw_config.json :-)
 
-for key in j_data['game_type'].keys():
-    get_to_json(game=key)
+# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+#     j_data = json.load(j_file)
+#
+# for key in j_data['game_type'].keys():
+#     get_to_json(game=key)
 
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
