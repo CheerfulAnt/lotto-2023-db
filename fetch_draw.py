@@ -1,5 +1,6 @@
 import cfg
 import event_report
+import db_query as dbq
 # --------------------
 import os
 import requests
@@ -7,83 +8,58 @@ import json
 import ijson
 import pandas as pd
 from datetime import datetime
-from inflection import underscore
-import psycopg  # psycopg3.1.8
 
-# function check_last_draw() checks last draw date and id for games subtypes from draw_config.json
-# returns dictionary e.g.:
-# {'Lotto': (6855, '2023-03-11T22:00:00Z'), 'LottoPlus': (6855, '2023-03-11T22:00:00Z')}
-# {'Szybkie600': (295836, '2023-03-13T22:40:00Z')}
-# {'EkstraPremia': (2500, '2023-03-12T22:00:00Z'), 'EkstraPensja': (2500, '2023-03-12T22:00:00Z')}
+
+# function check_last_draw() checks last draw id for games subtypes from lotto website.
 
 def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
 
-    # # get data to build request
-    #
-    # with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-    #     request_data = json.load(j_file)
-    #
-    #     request_data['query_strings']['game'] = game_type
-    #
-    # with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-    #     j_requests = json.load(j_file)
-    #
-    # # get last draw
-    #
-    # response = requests.get(request_data['base_url'], headers=j_requests['headers'],
-    #                         params=request_data['query_strings'])
-    #
-    # # check response.status_code, if not 200, raise Exception - CustomError
-    #
-    # if response.status_code != 200:
-    #     message = 'Game "' + game_type + '" - Cannot fetch json data, status code: ' + str(response.status_code)
-    #     raise event_report.CustomError(message)
-    #
-    # # get last drawSystemId
-    #
-    # last_game = response.json()
-    #
-    # # check if drawSystemId is None, if yes, probably update after draw in lotto system
-    # # if not None get draw  ID and draw date
-    #
-    # if last_game['items'][0]['drawSystemId'] is None:
-    #     message = 'Game "' + game_type + '" - Cannot fetch json data, drawSystemId is None.'
-    #     raise event_report.CustomError(message)
-    #
-    # last_game_subtype_dict = dict()
-    #
-    # for i in range(len(last_game['items'][0]['results'])):
-    #     last_game_subtype_dict[last_game['items'][0]['results'][i]['gameType']] = \
-    #         (last_game['items'][0]['results'][i]['drawSystemId'], last_game['items'][0]['results'][i]['drawDate'])
+    # get data to build request
 
-    last_game_subtype_dict ={'Lotto': (6855, '2023-03-11T22:00:00Z'), 'LottoPlus': (6855, '2023-03-11T22:00:00Z')}
+    base_url = cfg.draw_config_json['base_url']
+    headers = cfg.requests_json['headers']
+    params = cfg.draw_config_json['query_strings']
 
-    return last_game_subtype_dict
+    params['game'] = game_type
 
-def check_last_draw_db(game_subtype):
+    # get last draw
 
-    conn = psycopg.connect(**cfg.db_config)
+    response = requests.get(base_url, headers=headers, params=params)
 
-    cur = conn.cursor()
-    cur.execute('SELECT MAX (draw_id) FROM lotto')
-    last_draw_id = cur.fetchone()
+    # check response.status_code, if not 200, raise Exception - CustomError
 
-    print(last_draw_id[0])
+    if response.status_code != 200:
+        message = 'Game "' + game_type + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+        raise event_report.CustomError(message)
+
+    # get last drawSystemId
+
+    last_game = response.json()
+
+    # check if drawSystemId is None, if yes, probably update after draw in lotto system
+    # if not None get draw  ID and draw date
+
+    if last_game['items'][0]['drawSystemId'] is None:
+        message = 'Game "' + game_type + '" - Cannot fetch json data, drawSystemId is None.'
+        raise event_report.CustomError(message)
+
+    last_game_id = last_game['items'][0]['drawSystemId']
+
+    #last_game_id = 4453
+
+    return last_game_id
 
 
-check_last_draw_db(game_subtype='lotto')
+# check last draws for games subtypes in database
 
-print(underscore('ExtraPensja'))
+db_obj = dbq.DB()
 
-
-# check last draws for games subtypes in draw_config.json
-
-# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-#     j_data = json.load(j_file)
-#
-# for key in j_data['game_type'].keys():
-#     print(check_last_draw(game_type=key))
-
+for item in cfg.game_type_list:
+    print(item)
+    print(check_last_draw(game_type=item))
+    print(cfg.game_dict[item][0])
+    print(db_obj.check_last_draw_db(cfg.game_dict[item][0]))
+    # print(dbq.check_last_draw_db(cfg.game_dict[item][0]))
 
 
 
