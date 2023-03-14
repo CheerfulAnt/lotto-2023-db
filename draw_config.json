@@ -1,5 +1,6 @@
 {
-    "last_run_get": "2023-03-13T22:45:57",
+    "last_runt": "2023-03-13T22:45:57",
+    "check_db": "False",
     "base_url": "https://www.lotto.pl/api/lotteries/draw-results/by-gametype",
     "query_strings": {
         "game": "",
@@ -10,6 +11,8 @@
     },
     "game_type": {
         "Lotto": {
+            "tables_created": "False",
+            "data_loaded": "False",
             "draw_days": {},
             "game_subtype": {
                 "Lotto": {
@@ -23,6 +26,8 @@
             }
         },
         "Szybkie600": {
+            "tables_created": "False",
+            "data_loaded": "False",
             "draw_days": {},
             "game_subtype": {
                 "Szybkie600": {
@@ -32,6 +37,8 @@
             }
         },
         "EkstraPremia": {
+            "tables_created": "False",
+            "data_loaded": "False",
             "draw_days": {},
             "game_subtype": {
                 "EkstraPremia": {
