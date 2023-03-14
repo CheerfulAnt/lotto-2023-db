@@ -25,17 +25,6 @@
                 }
             }
         },
-        "Szybkie600": {
-            "tables_created": "False",
-            "data_loaded": "False",
-            "draw_days": {},
-            "game_subtype": {
-                "Szybkie600": {
-                    "last_system_id": "",
-                    "last_draw_date": ""
-                }
-            }
-        },
         "EkstraPremia": {
             "tables_created": "False",
             "data_loaded": "False",
