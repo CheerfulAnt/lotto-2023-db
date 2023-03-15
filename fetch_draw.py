@@ -46,7 +46,7 @@ def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
     #
     # last_game_id = last_game['items'][0]['drawSystemId']
 
-    last_game_id = 20_023
+    last_game_id = 6856
 
     return last_game_id
 
@@ -76,11 +76,12 @@ for item in cfg.game_type_list:
             # size = chunk_size
             for i in range(iter_cnt + 1):
                 #time.sleep(2)
+                print(f'index={index}&size={chunk_size}')
                 if index < chunk_size:
                     chunk_size = index
                 else:
                     index -= chunk_size
-                print(f'index={index}&size={chunk_size}')
+
 
 
 
