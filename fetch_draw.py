@@ -1,5 +1,8 @@
+import time
+
 import cfg
 import event_report
+import db_query as dbq
 # --------------------
 import os
 import requests
@@ -9,6 +12,84 @@ import pandas as pd
 from datetime import datetime
 
 
+# function check_last_draw() checks last draw id for games subtypes from lotto website.
+
+def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
+    # # get data to build request
+    #
+    # base_url = cfg.draw_config_json['base_url']
+    # headers = cfg.requests_json['headers']
+    # params = cfg.draw_config_json['query_strings']
+    #
+    # params['game'] = game_type
+    #
+    # # get last draw
+    #
+    # response = requests.get(base_url, headers=headers, params=params)
+    #
+    # # check response.status_code, if not 200, raise Exception - CustomError
+    #
+    # if response.status_code != 200:
+    #     message = 'Game "' + game_type + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+    #     raise event_report.CustomError(message)
+    #
+    # # get last drawSystemId
+    #
+    # last_game = response.json()
+    #
+    # # check if drawSystemId is None, if yes, probably update after draw in lotto system
+    # # if not None get draw  ID and draw date
+    #
+    # if last_game['items'][0]['drawSystemId'] is None:
+    #     message = 'Game "' + game_type + '" - Cannot fetch json data, drawSystemId is None.'
+    #     raise event_report.CustomError(message)
+    #
+    # last_game_id = last_game['items'][0]['drawSystemId']
+
+    last_game_id = 6856
+
+    return last_game_id
+
+
+# fetch draws
+
+db_obj = dbq.DB()
+
+for item in cfg.game_type_list:
+    print(item)
+    last_game_id = check_last_draw(game_type=item)
+    print(cfg.game_dict[item][0])
+    last_game_id_db = db_obj.check_last_draw_db(cfg.game_dict[item][0])
+    chunk_size = cfg.config['CHUNK_SIZE']
+    print('last id ', last_game_id)
+    print('last id db ', last_game_id_db)
+
+    if last_game_id_db is None:
+        if last_game_id / chunk_size <= 1:
+            print('None by once: ', last_game_id)
+            # fetch all by once
+            # index = last_game_id
+            # size = last_game_id
+        else:
+            iter_cnt = last_game_id // chunk_size
+            index = last_game_id
+            # size = chunk_size
+            for i in range(iter_cnt + 1):
+                #time.sleep(2)
+                print(f'index={index}&size={chunk_size}')
+                if index < chunk_size:
+                    chunk_size = index
+                else:
+                    index -= chunk_size
+
+
+
+
+    # if last_game_id > last_game_id_db:
+    #     pass
+
+
+# do not call get_to_json(), this will kill draw_config.json :-)
 # file names for game data: gameName_base.json, gameName.json, gameName.csv
 # function save_json_csv() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
 # e.g. specialResults
@@ -21,7 +102,7 @@ from datetime import datetime
 # For e.g. Szybkie600 returns error: {"code":500,"message":"Internal server error"} (approx. 300k results).
 # It will be fixed in the version of the function for the database, by sequential fetching.
 
-def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
+def get_to_json(game=cfg.config['DEFAULT_GAME'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['BASE_FILE']):
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -161,17 +242,19 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-    j_data = json.load(j_file)
+# do not call get_to_json(), this will kill draw_config.json :-)
 
-for key in j_data['game_type'].keys():
-    get(game=key)
+# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+#     j_data = json.load(j_file)
+#
+# for key in j_data['game_type'].keys():
+#     get_to_json(game=key)
 
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
 
-def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
+def save_json_csv(game=cfg.config['DEFAULT_GAME'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['BASE_FILE']):
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -205,8 +288,8 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
         for i in range(len(j_draws['items'])):
 
             date_time_object = datetime.strptime(j_draws['items'][i]['results'][0]['drawDate'],
-                                                 cfg.config['date_time_format'])
-            draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+                                                 cfg.config['DATE_TIME_FORMAT'])
+            draw_date = date_time_object.strftime(cfg.config['DATE_STORE_FORMAT'])
             draw_time = date_time_object.strftime(cfg.config['time_store_format'])
 
             draw_lotto_list.append({'drawSystemId': j_draws['items'][i]['results'][0]['drawSystemId'],
@@ -219,8 +302,8 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
 
             if len(j_draws['items'][i]['results']) != 1:
                 date_time_object = datetime.strptime(j_draws['items'][i]['results'][1]['drawDate'],
-                                                     cfg.config['date_time_format'])
-                draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+                                                     cfg.config['DATE_TIME_FORMAT'])
+                draw_date = date_time_object.strftime(cfg.config['DATE_STORE_FORMAT'])
                 draw_time = date_time_object.strftime(cfg.config['time_store_format'])
 
                 draw_lotto_plus_list.append({'drawSystemId': j_draws['items'][i]['results'][1]['drawSystemId'],

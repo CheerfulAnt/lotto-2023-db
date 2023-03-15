@@ -1,5 +1,6 @@
 {
-    "last_run_get": "2023-03-12T21:37:27",
+    "last_runt": "2023-03-13T22:45:57",
+    "check_db": "False",
     "base_url": "https://www.lotto.pl/api/lotteries/draw-results/by-gametype",
     "query_strings": {
         "game": "",
@@ -10,19 +11,34 @@
     },
     "game_type": {
         "Lotto": {
-            "last_system_id": 6855,
-            "last_draw_date": "2023-03-11T22:00:00Z",
-            "draw_days": {}
-        },
-        "Szybkie600": {
-            "last_system_id": "",
-            "last_draw_date": "",
-            "draw_days": {}
+            "tables_created": "False",
+            "data_loaded": "False",
+            "draw_days": {},
+            "game_subtype": {
+                "Lotto": {
+                    "last_system_id": 6855,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                },
+                "LottoPlus": {
+                    "last_system_id": 6855,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                }
+            }
         },
         "EkstraPremia": {
-            "last_system_id": 2499,
-            "last_draw_date": "2023-03-11T22:00:00Z",
-            "draw_days": {}
+            "tables_created": "False",
+            "data_loaded": "False",
+            "draw_days": {},
+            "game_subtype": {
+                "EkstraPremia": {
+                    "last_system_id": 2499,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                },
+                "EkstraPensja": {
+                    "last_system_id": 2499,
+                    "last_draw_date": "2023-03-11T22:00:00Z"
+                }
+            }
         }
     }
 }

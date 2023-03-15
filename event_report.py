@@ -1,6 +1,7 @@
 import cfg
 # ------------------
 import os
+import sys
 import traceback
 import smtplib
 import ssl
@@ -25,7 +26,8 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 
-def event_log(exception_show=cfg.config['EXCEPTION_SHOW'],
+def event_log(exception_short_show=cfg.config['EXCEPTION_SHORT_SHOW'],
+              exception_show=cfg.config['EXCEPTION_SHOW'],
               email_error_log=cfg.config['EMAIL_ERROR_LOG'],
               email_event_log=cfg.config['EMAIL_EVENT_LOG'],
               event='[UNKNOWN]',
@@ -39,6 +41,10 @@ def event_log(exception_show=cfg.config['EXCEPTION_SHOW'],
         if email_error_log:
             subject = event + ' - ' + subject
             send_email(subject=subject, message=traceback.format_exc())
+        if exception_short_show:
+            print('\033[91m' + message + '\033[0m')
+            print('\033[91mExiting... \033[0m')
+            sys.exit(1)
     else:
         logger.info(event + ' ' + message)
         if email_event_log:
