@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Project Name: lotto-2023
+# Project Name: lotto_2023_db
 # Description: I don't know what is this, work in progress :-)
 #              Tested on Linux, Ubuntu 22.04.2
 # Usage: main.py :-)
