@@ -2,6 +2,46 @@
     "totalRows": 0,
     "items": [
         {
+            "drawSystemId": 2500,
+            "drawDate": "2023-03-12T22:00:00Z",
+            "gameType": "EkstraPremia",
+            "multiplierValue": 0,
+            "results": [
+                {
+                    "drawDate": "2023-03-12T22:00:00Z",
+                    "drawSystemId": 2500,
+                    "gameType": "EkstraPremia",
+                    "resultsJson": [
+                        4,
+                        35,
+                        15,
+                        19,
+                        6
+                    ],
+                    "specialResults": [
+                        1
+                    ]
+                },
+                {
+                    "drawDate": "2023-03-12T22:00:00Z",
+                    "drawSystemId": 2500,
+                    "gameType": "EkstraPensja",
+                    "resultsJson": [
+                        10,
+                        9,
+                        13,
+                        15,
+                        6
+                    ],
+                    "specialResults": [
+                        3
+                    ]
+                }
+            ],
+            "showSpecialResults": true,
+            "isNewEuroJackpotDraw": false
+        },
+        {
             "drawSystemId": 2499,
             "drawDate": "2023-03-11T22:00:00Z",
             "gameType": "EkstraPremia",

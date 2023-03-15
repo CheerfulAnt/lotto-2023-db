@@ -13,23 +13,6 @@ from datetime import datetime
 # function save_json_csv() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
 # e.g. specialResults
 
-# store and update raw data in csv and json format
-
-def file_exist():
-    pass
-
-
-def file_update():
-    pass
-
-
-# update database -> from module database
-# for database parse only json file
-
-def db_update():
-    pass
-
-
 # Function get() - fetch draws, if file does not exist, dump results to json file (gameName_base.json).
 # If file exist, check last drawSystemId in file and from request, update gameName_base.json if
 # drawSystemId's not equal.
@@ -177,11 +160,12 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-#     j_data = json.load(j_file)
-#
-# for key in j_data['game_type'].keys():
-#     get(game=key)
+
+with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+    j_data = json.load(j_file)
+
+for key in j_data['game_type'].keys():
+    get(game=key)
 
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
