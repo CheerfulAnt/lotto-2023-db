@@ -1,6 +1,5 @@
 # !!! in progress !!! (PostgreSQL)
 import sys
-
 import cfg
 import event_report
 # -----------------------------
