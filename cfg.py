@@ -1,3 +1,4 @@
+# to!do: make class with show all variables method
 # load and cast variables from .env.secret and .env.shared files
 
 from json import load
@@ -46,22 +47,26 @@ with open(config['REQUESTS_JSON'], 'r', encoding=config['ENCODING']) as j_file:
 
 # prepare lists with game names, *_sc - lower case & snake case names for DB
 
-game_dict = dict()
-game_sub_tuple = tuple()
-game_type_list = list()
-game_subtype_list = list()
-game_type_list_sc = list()
-game_subtype_list_sc = list()
+games = tuple(draw_config_json['game_type'])
 
-for key in draw_config_json['game_type'].keys():
+# game_dict = dict()
+# game_sub_tuple = tuple()
+# game_type_list = list()
+# game_subtype_list = list()
+# game_type_list_sc = list()
+# game_subtype_list_sc = list()
 
-    game_type_list.append(key)
-    game_type_list_sc.append(underscore(key))
+# for key in draw_config_json['game_type'].keys():
+#
+#     game_type_list.append(key)
+#     game_type_list_sc.append(underscore(key))
+#
+#     for sub_key in draw_config_json['game_type'][key]['game_subtype'].keys():
+#         game_subtype_list.append(sub_key)
+#         game_subtype_list_sc.append(underscore(sub_key))
+#         game_sub_tuple = game_sub_tuple + (underscore(sub_key), )
+#
+#     game_dict[key] = game_sub_tuple
+#     game_sub_tuple = tuple()
 
-    for sub_key in draw_config_json['game_type'][key]['game_subtype'].keys():
-        game_subtype_list.append(sub_key)
-        game_subtype_list_sc.append(underscore(sub_key))
-        game_sub_tuple = game_sub_tuple + (underscore(sub_key), )
-
-    game_dict[key] = game_sub_tuple
-    game_sub_tuple = tuple()
+print(games)
