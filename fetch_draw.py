@@ -10,53 +10,60 @@ import json
 import ijson
 import pandas as pd
 from datetime import datetime
+from tqdm import tqdm
+import time
 
 
-# function check_last_draw() checks last draw id for games subtypes from lotto website.
-
-def check_last_draw(game_type=cfg.config['DEFAULT_GAME']):
-    # # get data to build request
-    #
-    # base_url = cfg.draw_config_json['base_url']
-    # headers = cfg.requests_json['headers']
-    # params = cfg.draw_config_json['query_strings']
-    #
-    # params['game'] = game_type
-    #
-    # # get last draw
-    #
-    # response = requests.get(base_url, headers=headers, params=params)
-    #
-    # # check response.status_code, if not 200, raise Exception - CustomError
-    #
-    # if response.status_code != 200:
-    #     message = 'Game "' + game_type + '" - Cannot fetch json data, status code: ' + str(response.status_code)
-    #     raise event_report.CustomError(message)
-    #
-    # # get last drawSystemId
-    #
-    # last_game = response.json()
-    #
-    # # check if drawSystemId is None, if yes, probably update after draw in lotto system
-    # # if not None get draw  ID and draw date
-    #
-    # if last_game['items'][0]['drawSystemId'] is None:
-    #     message = 'Game "' + game_type + '" - Cannot fetch json data, drawSystemId is None.'
-    #     raise event_report.CustomError(message)
-    #
-    # last_game_id = last_game['items'][0]['drawSystemId']
-
-    last_game_id = 6856
-
-    return last_game_id
+# function check_last_draw() checks last draw id for games from lotto website. (or get range)
 
 
-def chunks_generator(last, chunk):
+def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', get_id=True):
+    # get data to build request
 
+    base_url = cfg.draw_config_json['base_url']
+    headers = cfg.requests_json['headers']
+    params = cfg.draw_config_json['query_strings']
+
+    params['game'] = game
+    params['index'] = index
+    params['size'] = size
+    params['order'] = order
+
+    # get last draw
+
+    response = requests.get(base_url, headers=headers, params=params)
+
+    # check response.status_code, if not 200, raise Exception - CustomError
+
+    if response.status_code != 200:
+        message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+        raise event_report.CustomError(message)
+
+    # get last drawSystemId
+
+    game_data = response.json()
+
+    # check if drawSystemId is None, if yes, probably update after draw in lotto system
+    # if not None get draw  ID and draw date
+
+    if game_data['items'][0]['drawSystemId'] is None:
+        message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
+        raise event_report.CustomError(message)
+
+    if get_id:
+        return game_data['items'][0]['drawSystemId']
+
+    return game_data
+
+
+# to!do:  !!! sort=drawSystemId, super szansa LOTTO check if was another subgames (when het and parse) !!
+# desc if load new draws and ASC when initial load
+
+def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='asc'):
     chunks_list = list()
 
-    if last <= chunk:
-        chunks_list.append((1, last, last))
+    if number <= chunk:
+        chunks_list.append((1, number, number))
         return chunks_list
 
     def chungen(last, chunk):
@@ -81,7 +88,7 @@ def chunks_generator(last, chunk):
         aux_list.clear()
         return rest
 
-    rest = chungen(last=last, chunk=chunk)
+    rest = chungen(last=number, chunk=chunk)
 
     dividers = list()
 
@@ -98,26 +105,79 @@ def chunks_generator(last, chunk):
 
         if dividers[x + 1] <= rest < dividers[x] and rest > 0:
             chunk = dividers[x + 1]
-            rest = chungen(last=last, chunk=chunk)
+            rest = chungen(last=number, chunk=chunk)
+
+    if order == 'desc':
+        chunks_list.reverse()
+        return chunks_list
 
     return chunks_list
 
 
-print(chunks_generator(6856, 1000))
+db_obj = dbq.DB()
+
+games = db_obj.get_games()
+
+for game in games:
+
+    last_draw_id = (get_draws(game=game[0]))
+
+    if game[1] is None:  # get and load all
+        print(chunks_generator(last_draw_id))
+    else:
+        id_to_get = last_draw_id - game[1]
+        print(id_to_get)
+        print(get_draws())
+        chunks = chunks_generator(id_to_get, order='DESC')
+        print(chunks)
+        for chunk in chunks:
+            print(chunk[0])
+            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
+            draws_data = json.dumps(draws_data, indent=4)
+            print(draws_data)
 
 
 # fetch draws
 
-# db_obj = dbq.DB()
-#
-# for item in cfg.game_type_list:
-#     print(item)
-#     last_game_id = check_last_draw(game_type=item)
-#     print(cfg.game_dict[item][0])
-#     last_game_id_db = db_obj.check_last_draw_db(cfg.game_dict[item][0])
-#     chunk_size = cfg.config['CHUNK_SIZE']
-#     print('last id ', last_game_id)
-#     print('last id db ', last_game_id_db)
-#     time.sleep()
-#     if last_game_id_db is None:
-#         pass
+# !!! Not ready as all scripts and fn :) if all load all draws from draw_config.json to db or check and load missing,
+# else load only one draw e.g. Lotto,
+# first check if exists in draw_config.json
+
+def load_to_db(draws='all'):
+    if draws == 'all':
+
+        db_obj = dbq.DB()
+
+        for game in cfg.game_type_list:
+            print(game)
+            last_game_id = get_draws(game_type=game)
+            print(cfg.game_dict[game][0])
+            last_game_id_db = db_obj.check_last_draw_db(cfg.game_dict[game][0])
+
+            print('last id ', last_game_id)
+            print('last id db ', last_game_id_db)
+
+            if last_game_id_db is not None and last_game_id > last_game_id_db:
+                chunks_list = chunks_generator(6856)
+
+                # sprawdz czy juz jest coś w bazie danych
+
+            print(chunks_list)
+            chunks_list.clear()
+
+            if last_game_id_db is None:
+                pass
+
+            for chunk in chunks_list:
+                #   fetch
+                pass
+
+            # chunks_list = chunks_generator()
+            # print(chunks_list)
+            chunks_qty = len(chunks_list)
+            chunks_counter = 0
+    else:
+        # check if is in json
+        pass
+
+# load_to_db()
