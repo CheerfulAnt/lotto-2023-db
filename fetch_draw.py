@@ -134,7 +134,7 @@ for game in games:
         #print(chunks)
         for chunk in chunks:
             #print(chunk)
-            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='ASC', get_id=False)
+            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
             # #draws_data = json.dumps(draws_data, indent=4)
             #print(draws_data)
             # set True if checked and if (don't check every iteration)
