@@ -1,6 +1,5 @@
 # !!! in progress !!! (PostgreSQL)
 import sys
-
 import cfg
 import event_report
 # -----------------------------
@@ -51,6 +50,7 @@ class DB:
 
                 cur.execute(f'''CREATE TABLE IF NOT EXISTS {key}(
                             draw_id    INT    NULL,
+                            draw_name   TEXT  NULL,
                             draw_date   DATE        NULL,
                             draw_time   BOOLEAN     NULL,
                             results   integer ARRAY    NULL,
@@ -82,10 +82,10 @@ class DB:
 
         cur.close()
 
-    def check_last_draw_db(self, game_subtype):
+    def check_last_draw_db(self, game):
         cur = self.conn.cursor()
 
-        cur.execute(f'SELECT MAX(draw_id) FROM {game_subtype};')
+        cur.execute(f'SELECT MAX(draw_id) FROM {game};')
         last_draw_id = cur.fetchone()
 
         cur.close()
@@ -95,3 +95,21 @@ class DB:
     def load_data_db(self):
         cur = self.conn.cursor()
         cur.close()
+
+    def get_games(self):
+        cur = self.conn.cursor()
+        table_exists_dict = dict()
+
+        cur.execute('SELECT game_name, game_last_draw FROM games')
+        games = cur.fetchall()
+        cur.close()
+
+        return games
+
+
+
+# CREATE TABLE IF NOT EXISTS games(
+#                             game_id        SERIAL    NOT NULL,
+#                             game_name      DATE        NULL,
+#                             game_last_draw INT         NULL,
+#                          PRIMARY KEY(game_id));

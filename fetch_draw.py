@@ -130,7 +130,7 @@ for game in games:
         id_to_get = last_draw_id - game[1]
         #print(id_to_get)
         #print(get_draws())
-        chunks = chunks_generator(id_to_get, order='ASC')  # order always opposite to get_draws
+        chunks = chunks_generator(id_to_get, order='ASC')
         #print(chunks)
         for chunk in chunks:
             #print(chunk)
