@@ -146,7 +146,10 @@ for game in games:
                     games_dict[results['gameType']].append((results['drawSystemId'], results['drawDate'], results['resultsJson']))
 
 
-    print('list_test:', games_dict)
+print('list_test:', games_dict)
+
+for x in games_dict.keys():
+    print(x)
 
 # fetch draws
 
