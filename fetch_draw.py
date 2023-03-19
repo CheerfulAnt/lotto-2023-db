@@ -59,7 +59,7 @@ def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', ge
 # to!do:  !!! sort=drawSystemId, super szansa LOTTO check if was another subgames (when het and parse) !!
 # desc if load new draws and ASC when initial load
 
-def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='asc'):
+def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
     chunks_list = list()
 
     if number <= chunk:
@@ -107,7 +107,7 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='asc'):
             chunk = dividers[x + 1]
             rest = chungen(last=number, chunk=chunk)
 
-    if order == 'desc':
+    if order == 'DESC':
         chunks_list.reverse()
         return chunks_list
 
@@ -118,24 +118,35 @@ db_obj = dbq.DB()
 
 games = db_obj.get_games()
 
+games_dict = dict()
+
 for game in games:
 
     last_draw_id = (get_draws(game=game[0]))
 
-    if game[1] is None:  # get and load all
-        print(chunks_generator(last_draw_id))
+    if game[1] is None: pass  # get and load all
+        #print(chunks_generator(last_draw_id))
     else:
         id_to_get = last_draw_id - game[1]
-        print(id_to_get)
-        print(get_draws())
-        chunks = chunks_generator(id_to_get, order='DESC')
-        print(chunks)
+        #print(id_to_get)
+        #print(get_draws())
+        chunks = chunks_generator(id_to_get, order='ASC')
+        #print(chunks)
         for chunk in chunks:
-            print(chunk[0])
-            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
-            draws_data = json.dumps(draws_data, indent=4)
-            print(draws_data)
+            #print(chunk)
+            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='ASC', get_id=False)
+            # #draws_data = json.dumps(draws_data, indent=4)
+            #print(draws_data)
+            # set True if checked and if (don't check every iteration)
+            for item in draws_data['items']:
 
+                for results in item['results']:
+                    if results['gameType'] not in games_dict:
+                        games_dict[results['gameType']] = []
+                    games_dict[results['gameType']].append((results['drawSystemId'], results['drawDate'], results['resultsJson']))
+
+
+    print('list_test:', games_dict)
 
 # fetch draws
 
