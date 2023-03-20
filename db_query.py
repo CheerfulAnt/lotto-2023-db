@@ -1,8 +1,18 @@
-# !!! in progress !!! (PostgreSQL)
-import sys
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------------
+# Created By: CheerfulAnt (Github account holder) <CheerfulAnt@outlook.com>
+# License: MIT License.
+# ---------------------------------------------------------------------------
+""" This script is part of the lotto-2023-db project. """
+# ---------------------------------------------------------------------------
+# Imports from lotto-2023-db
+# ---------------------------------------------------------------------------
 import cfg
 import event_report
-# -----------------------------
+# ---------------------------------------------------------------------------
+# Imports
+# ---------------------------------------------------------------------------
 import psycopg  # psycopg3.1.8
 from inflection import underscore
 
