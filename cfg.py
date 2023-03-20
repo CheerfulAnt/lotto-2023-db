@@ -1,6 +1,13 @@
-# to!do: make class with show all variables method
-# load and cast variables from .env.secret and .env.shared files
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------------
+# Created By: CheerfulAnt (Github account holder) <CheerfulAnt@outlook.com>
+# License: MIT License.
+# ---------------------------------------------------------------------------
+""" This script is part of the lotto-2023-db project. """
+# ---------------------------------------------------------------------------
+# Imports
+# ---------------------------------------------------------------------------
 from json import load
 from dotenv import dotenv_values
 from pydantic import BaseModel

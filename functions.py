@@ -1,5 +1,14 @@
-# just import from old project, some functions will be replaced by NumPy or pandas in the near future<
-# functions.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------------
+# Created By: CheerfulAnt (Github account holder) <CheerfulAnt@outlook.com>
+# License: MIT License.
+# ---------------------------------------------------------------------------
+""" This script is part of the lotto-2023-db project.
+    *Just import from old project, some functions will be replaced
+    by NumPy or pandas in the near future.*
+    """
+# ---------------------------------------------------------------------------
 
 # sums digits from date (year, month day), date can be with non digits characters
 

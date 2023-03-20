@@ -1,17 +1,24 @@
-#!/usr/bin/python3
-# Project Name: lotto-2023-db
-# Description: I don't know what is this, work in progress :-)
-#              Tested on Linux, Ubuntu 22.04.2
-# Usage: main.py :-)
-# Author: CheerfulAnt@outlook.com
-# Version: 0.1.0
-# Date: 1 March 2023 - 21:00 (GMT+01:00)
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ----------------------------------------------------------------------------
+# Created By: CheerfulAnt (Github account holder) <CheerfulAnt@outlook.com>
+# Project: lotto-2023-db
+# Version 0.2.0
+# License: MIT License.
+# ---------------------------------------------------------------------------
+""" *Work in progress.*
+    The script retrieves results from the lotto website.
+    In the final version, the script will retrieve the draws results
+    from the lotto website and load it into the database.
+    """
+# ---------------------------------------------------------------------------
+# Imports from lotto-2023-db
+# ---------------------------------------------------------------------------
 import cfg
-#import event_report
-#import fetch_draw
 import db_query as dbq
-# -------------------
+# ---------------------------------------------------------------------------
+# Imports
+# ---------------------------------------------------------------------------
 import sys
 
 
