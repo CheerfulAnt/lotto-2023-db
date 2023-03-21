@@ -60,11 +60,11 @@ class DB:
 
                 cur.execute(f'''CREATE TABLE IF NOT EXISTS {key}(
                             draw_id    INT    NULL,
-                            draw_name   TEXT  NULL,
+                            draw_datetime TIMESTAMP NULL,
+                            results     INTEGER ARRAY    NULL,
+                            special_results INTEGER ARRAY NULL,                            
                             draw_date   DATE        NULL,
-                            draw_time   BOOLEAN     NULL,
-                            results   integer ARRAY    NULL,
-                            special_results integer ARRAY NULL,
+                            draw_time   TIME     NULL,
                             draw_sum    INT         NULL,
                             draw_avg    INT         NULL,
                             draw_median INT         NULL,
