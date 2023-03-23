@@ -14,8 +14,11 @@ import db_query as dbq
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
-
+import json
 import requests
+from datetime import datetime
+from inflection import underscore
+
 
 # function check_last_draw() checks last draw id for games from lotto website. (or get range)
 
@@ -50,8 +53,20 @@ def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', ge
     # if not None get draw  ID and draw date
 
     if game_data['items'][0]['drawSystemId'] is None:
-        message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
-        raise event_report.CustomError(message)
+        if order == 'DESC':
+            message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
+            raise event_report.CustomError(message)
+        if order == 'ASC':  # null id value after draws (up to approx. 30min), appear as first in asc
+            # should return last index + 1 to!do
+            response = requests.get(base_url, headers=headers, params=params)
+
+            # check response.status_code, if not 200, raise Exception - CustomError
+
+            if response.status_code != 200:
+                message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+                raise event_report.CustomError(message)
+
+            game_data = response.json()
 
     if get_id:
         return game_data['items'][0]['drawSystemId']
@@ -119,82 +134,67 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
 
 db_obj = dbq.DB()
 
+# to!do instead of a separate table check from the game table
+
+# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
+# messy query results
+# after add new master game
+
+# fetch and load results into database, tested on Lotto and EkstraPensja
+
 games = db_obj.get_games()
 
 games_dict = dict()
 
-for game in games:
+for game in games:  # lotto order little messy, doesn't start from first draw
 
-    last_draw_id = (get_draws(game=game[0]))
+    last_draw_id = (get_draws(game=game[0], order='DESC'))
+    first_draw_id = (get_draws(game=game[0], order='ASC'))
 
-    if game[1] is None: pass  # get and load all
-        #print(chunks_generator(last_draw_id))
+    draw_qty = last_draw_id - first_draw_id
+
+    # last_draw_id = 6859
+
+    if game[1] is None:
+        pass  # get and load all
+
+    # print(chunks_generator(last_draw_id))
     else:
-        id_to_get = last_draw_id - game[1]
-        #print(id_to_get)
-        #print(get_draws())
-        chunks = chunks_generator(id_to_get, order='ASC')
-        #print(chunks)
+        if last_draw_id < game[1]:
+            print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
+            id_to_get = None
+        elif last_draw_id > game[1]:
+            id_to_get = last_draw_id - game[1]
+        elif last_draw_id == game[1]:
+            print('Nothing to do...')
+            id_to_get = None
+            break
+        else:
+            print('EventReport')  # !!!!!!!!!!!!!!!!!!!!
+            id_to_get = None
+
+        chunks = chunks_generator(draw_qty, order='ASC')
+
         for chunk in chunks:
-            #print(chunk)
+            games_dict.clear()
+
             draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
-            # #draws_data = json.dumps(draws_data, indent=4)
-            #print(draws_data)
-            # set True if checked and if (don't check every iteration)
+
             for item in draws_data['items']:
 
                 for results in item['results']:
                     if results['gameType'] not in games_dict:
                         games_dict[results['gameType']] = []
-                    games_dict[results['gameType']].append((results['drawSystemId'], results['drawDate'], results['resultsJson']))
+                        game_subtype_name_sc = underscore(results['gameType'])
+                        if not db_obj.table_exists(game_subtype_name_sc):  # to!do insert new game name to game table
+                            db_obj.table_create(game_subtype_name_sc)
 
+                    date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
+                    draw_date = date_time_obj.strftime('%Y-%m-%d')
+                    draw_time = date_time_obj.strftime('%H:%M:%S')
 
-print('list_test:', games_dict)
+                    games_dict[results['gameType']].append(
+                        (item['drawSystemId'], results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                         results['specialResults']))
 
-for x in games_dict.keys():
-    print(x)
-
-# fetch draws
-
-# !!! Not ready as all scripts and fn :) if all load all draws from draw_config.json to db or check and load missing,
-# else load only one draw e.g. Lotto,
-# first check if exists in draw_config.json
-
-def load_to_db(draws='all'):
-    if draws == 'all':
-
-        db_obj = dbq.DB()
-
-        for game in cfg.game_type_list:
-            print(game)
-            last_game_id = get_draws(game_type=game)
-            print(cfg.game_dict[game][0])
-            last_game_id_db = db_obj.check_last_draw_db(cfg.game_dict[game][0])
-
-            print('last id ', last_game_id)
-            print('last id db ', last_game_id_db)
-
-            if last_game_id_db is not None and last_game_id > last_game_id_db:
-                chunks_list = chunks_generator(6856)
-
-                # sprawdz czy juz jest coś w bazie danych
-
-            print(chunks_list)
-            chunks_list.clear()
-
-            if last_game_id_db is None:
-                pass
-
-            for chunk in chunks_list:
-                #   fetch
-                pass
-
-            # chunks_list = chunks_generator()
-            # print(chunks_list)
-            chunks_qty = len(chunks_list)
-            chunks_counter = 0
-    else:
-        # check if is in json
-        pass
-
-# load_to_db()
+            db_obj.load_data(games_dict)
