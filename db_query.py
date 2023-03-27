@@ -53,7 +53,9 @@ class DB:
 
         cur.execute(f'''CREATE TABLE IF NOT EXISTS {table_name}(
                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
+                                main_draw_name TEXT NULL,
                                 main_draw_id INT  NULL,
+                                draw_name TEXT NULL,
                                 draw_id    INT    NULL,
                                 draw_date   DATE     NULL,
                                 draw_time   TIME     NULL,
@@ -96,18 +98,35 @@ class DB:
 
     def get_games(self):
         cur = self.conn.cursor()
-        table_exists_dict = dict()
 
         cur.execute('SELECT game_name, game_last_draw FROM games')
         games = cur.fetchall()
+
         cur.close()
 
         return games
 
+    def draw_id_exists(self, draw_name, draw_id):
+        cur = self.conn.cursor()
+
+        cur.execute(f'SELECT EXISTS(SELECT id FROM {draw_name} WHERE draw_id={draw_id})')
+
+        draw_id_exists = cur.fetchone()[0]
+
+        cur.close()
+
+        return draw_id_exists
 
 
 # CREATE TABLE IF NOT EXISTS games(
 #                             game_id        SERIAL    NOT NULL,
-#                             game_name      DATE        NULL,
+#                             game_name      TEXT        NULL,
 #                             game_last_draw INT         NULL,
 #                          PRIMARY KEY(game_id));
+
+# CREATE TABLE IF NOT EXISTS super_szansa_rel(
+#                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
+#                                 main_draw_name TEXT NULL,
+#                                 main_draw_id INT  NULL,
+#                                 draw_name TEXT NULL,
+#                                 draw_id    INT    NULL);

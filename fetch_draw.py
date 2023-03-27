@@ -145,6 +145,7 @@ db_obj = dbq.DB()
 games = db_obj.get_games()
 
 games_dict = dict()
+super_szansa_rel_dict = dict()
 
 for game in games:  # lotto order little messy, doesn't start from first draw
 
@@ -177,14 +178,17 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
         for chunk in chunks:
             games_dict.clear()
+            super_szansa_rel_dict.clear()
 
             draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
 
             for item in draws_data['items']:
 
-                for results in item['results']:
+                for results in item['results']:      # underscore one time variable
+
                     if results['gameType'] not in games_dict:
                         games_dict[results['gameType']] = []
+                        super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
                         if not db_obj.table_exists(game_subtype_name_sc):  # to!do insert new game name to game table
                             db_obj.table_create(game_subtype_name_sc)
@@ -193,8 +197,31 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                     draw_date = date_time_obj.strftime('%Y-%m-%d')
                     draw_time = date_time_obj.strftime('%H:%M:%S')
 
-                    games_dict[results['gameType']].append(
-                        (item['drawSystemId'], results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
-                         results['specialResults']))
+                    if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
+                        games_dict[results['gameType']].append(
+                            (item['gameType'], item['drawSystemId'], results['gameType'],
+                             results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                             results['specialResults']))
 
-            db_obj.load_data(games_dict)
+                    if results['gameType'] == 'SuperSzansa' and results['drawSystemId'] is not None:     # SuperSzansa exists only with another games
+                        if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']):
+                            games_dict[results['gameType']].append(
+                                (item['gameType'], item['drawSystemId'], results['gameType'],
+                                 results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                                 results['specialResults']))
+                        #print(item['gameType'], item['drawSystemId'],
+                        #                                            results['gameType'], results['drawSystemId'])
+                        super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
+                                                                    results['gameType'], results['drawSystemId']))
+
+            print(super_szansa_rel_dict)
+            #db_obj.load_data(games_dict)
+
+            # to!do update games table and last draws subgames IDs
+
+
+# draw_qty = last_draw_id - first_draw_id on system update
+# Traceback(most recent call last):
+# File     "/home/kate/PycharmProjects/lotto-2023-db/fetch_draw.py", line
+# 154, in < module >  draw_qty = last_draw_id - first_draw_id TypeError: unsupported operand
+# type(s)for -: 'int' and 'NoneType'
