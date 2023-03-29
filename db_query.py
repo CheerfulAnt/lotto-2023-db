@@ -89,7 +89,7 @@ class DB:
         cur = self.conn.cursor()
 
         for game in games_dict.keys():
-            with cur.copy(f"COPY {underscore(game)} (main_draw_id, draw_id, draw_date, draw_time, results, special_results) FROM STDIN") as copy:
+            with cur.copy(f"COPY {underscore(game)} (main_draw_name, main_draw_id, draw_name, draw_id, draw_date, draw_time, results, special_results) FROM STDIN") as copy:
                 for record in games_dict[game]:
                     copy.write_row(record)
 
@@ -119,10 +119,9 @@ class DB:
 
 
 # CREATE TABLE IF NOT EXISTS games(
-#                             game_id        SERIAL    NOT NULL,
+#                             id INT primary key GENERATED ALWAYS AS IDENTITY,
 #                             game_name      TEXT        NULL,
-#                             game_last_draw INT         NULL,
-#                          PRIMARY KEY(game_id));
+#                             game_last_draw INT         NULL);
 
 # CREATE TABLE IF NOT EXISTS super_szansa_rel(
 #                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,

@@ -147,12 +147,16 @@ games = db_obj.get_games()
 games_dict = dict()
 super_szansa_rel_dict = dict()
 
+print('games', games)
+
 for game in games:  # lotto order little messy, doesn't start from first draw
 
     last_draw_id = (get_draws(game=game[0], order='DESC'))
-    first_draw_id = (get_draws(game=game[0], order='ASC'))
+    #first_draw_id = (get_draws(game=game[0], order='ASC'))
 
-    draw_qty = last_draw_id - first_draw_id
+    print(last_draw_id)
+
+    #draw_qty = last_draw_id - first_draw_id
 
     # last_draw_id = 6859
 
@@ -166,21 +170,25 @@ for game in games:  # lotto order little messy, doesn't start from first draw
             id_to_get = None
         elif last_draw_id > game[1]:
             id_to_get = last_draw_id - game[1]
+            print('id_to_get', id_to_get)
         elif last_draw_id == game[1]:
             print('Nothing to do...')
-            id_to_get = None
-            break
+            id_to_get = 0
         else:
             print('EventReport')  # !!!!!!!!!!!!!!!!!!!!
             id_to_get = None
 
-        chunks = chunks_generator(draw_qty, order='ASC')
+        chunks = chunks_generator(id_to_get, order='ASC')
+
+        print(chunks)
 
         for chunk in chunks:
             games_dict.clear()
             super_szansa_rel_dict.clear()
 
             draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
+
+            #print(draws_data)
 
             for item in draws_data['items']:
 
@@ -213,11 +221,13 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         #                                            results['gameType'], results['drawSystemId'])
                         super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
                                                                     results['gameType'], results['drawSystemId']))
+                #print('len_item', len(item['results']))
+#                print('item', item)
+            print('games_dict', games_dict)
+            print('super_szansa_rel', super_szansa_rel_dict)
+            db_obj.load_data(games_dict)
 
-            print(super_szansa_rel_dict)
-            #db_obj.load_data(games_dict)
-
-            # to!do update games table and last draws subgames IDs
+            # to!do update games table and last draws subgames IDs or last main game id id game
 
 
 # draw_qty = last_draw_id - first_draw_id on system update
