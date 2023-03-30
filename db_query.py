@@ -75,10 +75,10 @@ class DB:
 
         cur.close()
 
-    def check_last_draw_db(self, game):
+    def last_main_draw_id_db(self, game):
         cur = self.conn.cursor()
 
-        cur.execute(f'SELECT MAX(draw_id) FROM {game};')
+        cur.execute(f'SELECT MAX(main_draw_id) FROM {game};')
         last_draw_id = cur.fetchone()
 
         cur.close()
@@ -96,10 +96,20 @@ class DB:
         self.conn.commit()
         cur.close()
 
+    def load_super_szansa_rel(self, rel_dict):
+        cur = self.conn.cursor()
+
+        with cur.copy(f"COPY {underscore('SuperSzansa')} (main_draw_name, main_draw_id, draw_name, draw_id") as copy:
+            for record in rel_dict['SuperSzansa']:
+                copy.write_row(record)
+
+        self.conn.commit()
+        cur.close()
+
     def get_games(self):
         cur = self.conn.cursor()
 
-        cur.execute('SELECT game_name, game_last_draw FROM games')
+        cur.execute('SELECT game_name FROM games')
         games = cur.fetchall()
 
         cur.close()
@@ -120,8 +130,7 @@ class DB:
 
 # CREATE TABLE IF NOT EXISTS games(
 #                             id INT primary key GENERATED ALWAYS AS IDENTITY,
-#                             game_name      TEXT        NULL,
-#                             game_last_draw INT         NULL);
+#                             game_name      TEXT        NULL);
 
 # CREATE TABLE IF NOT EXISTS super_szansa_rel(
 #                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
