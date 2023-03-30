@@ -229,6 +229,9 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
             # to!do update games table and last draws subgames IDs or last main game id id game
 
+# check if in games is not null
+# update super szansa rel, main_draw cols not necessarily in super_szansa if rel exists
+# check if gae table exists if not initialise with 0 values
 
 # draw_qty = last_draw_id - first_draw_id on system update
 # Traceback(most recent call last):
