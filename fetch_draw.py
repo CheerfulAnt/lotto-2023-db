@@ -144,34 +144,40 @@ db_obj = dbq.DB()
 
 games = db_obj.get_games()
 
+
 games_dict = dict()
 super_szansa_rel_dict = dict()
 
 print('games', games)
 
+
 for game in games:  # lotto order little messy, doesn't start from first draw
 
-    last_draw_id = (get_draws(game=game[0], order='DESC'))
+    last_draw_id = (get_draws(game=game, order='DESC'))
+
+    last_draw_id_db = db_obj.last_main_draw_id_db(underscore(game[0]))
+
+    print('game', game[0])
+    print(last_draw_id_db)
+
+
+
     #first_draw_id = (get_draws(game=game[0], order='ASC'))
 
     print(last_draw_id)
 
-    #draw_qty = last_draw_id - first_draw_id
-
-    # last_draw_id = 6859
-
-    if game[1] is None:
+    if last_draw_id_db is None:
         pass  # get and load all
 
     # print(chunks_generator(last_draw_id))
     else:
-        if last_draw_id < game[1]:
+        if last_draw_id < last_draw_id_db:
             print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
             id_to_get = None
-        elif last_draw_id > game[1]:
-            id_to_get = last_draw_id - game[1]
+        elif last_draw_id > last_draw_id_db:
+            id_to_get = last_draw_id - last_draw_id_db
             print('id_to_get', id_to_get)
-        elif last_draw_id == game[1]:
+        elif last_draw_id == last_draw_id_db:
             print('Nothing to do...')
             id_to_get = 0
         else:
@@ -198,7 +204,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         games_dict[results['gameType']] = []
                         super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
-                        if not db_obj.table_exists(game_subtype_name_sc):  # to!do insert new game name to game table
+                        if not db_obj.table_exists(game_subtype_name_sc):
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
@@ -217,21 +223,22 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                                 (item['gameType'], item['drawSystemId'], results['gameType'],
                                  results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
                                  results['specialResults']))
-                        #print(item['gameType'], item['drawSystemId'],
-                        #                                            results['gameType'], results['drawSystemId'])
                         super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
                                                                     results['gameType'], results['drawSystemId']))
-                #print('len_item', len(item['results']))
-#                print('item', item)
+
             print('games_dict', games_dict)
             print('super_szansa_rel', super_szansa_rel_dict)
+            if len(super_szansa_rel_dict['SuperSzansa']) > 0:
+                db_obj.load_super_szansa_rel(super_szansa_rel_dict)
             db_obj.load_data(games_dict)
 
-            # to!do update games table and last draws subgames IDs or last main game id id game
 
+# after loads check and delete null values for ids
 # check if in games is not null
-# update super szansa rel, main_draw cols not necessarily in super_szansa if rel exists
-# check if gae table exists if not initialise with 0 values
+# check if gae table exists if not initialise wih main games name
+# send info if new subgame appears, update games table with N - new game (moderation game status to Sub or Main by hand,
+# depend on game type if is standalone or only with )
+# status, add statuses M - main game, S - subgame, A - exists only with another games eg. SuperSzansa)
 
 # draw_qty = last_draw_id - first_draw_id on system update
 # Traceback(most recent call last):
