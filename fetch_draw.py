@@ -14,7 +14,6 @@ import db_query as dbq
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
-import json
 import requests
 from datetime import datetime
 from inflection import underscore
@@ -74,9 +73,6 @@ def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', ge
     return game_data
 
 
-# to!do:  !!! sort=drawSystemId, super szansa LOTTO check if was another subgames (when het and parse) !!
-# desc if load new draws and ASC when initial load
-
 def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
     chunks_list = list()
 
@@ -134,11 +130,7 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
 
 db_obj = dbq.DB()
 
-# to!do instead of a separate table check from the game table
-
 # after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
-# messy query results
-# after add new master game
 
 # fetch and load results into database, tested on Lotto and EkstraPensja
 
@@ -153,23 +145,29 @@ print('games', games)
 
 for game in games:  # lotto order little messy, doesn't start from first draw
 
+
     last_draw_id = (get_draws(game=game, order='DESC'))
 
-    last_draw_id_db = db_obj.last_main_draw_id_db(underscore(game[0]))
+    if last_draw_id is None:  # if results are fresh, null can appears in lotto last results to!do: retry fetch after time set in .env.shared
+        continue
+
+    if not db_obj.table_exists(underscore(game[0])):
+        last_draw_id_db = 0
+    else:
+        last_draw_id_db = db_obj.last_main_draw_id_db(underscore(game[0]))
+
+    print(last_draw_id_db)
+
+    break
 
     print('game', game[0])
     print(last_draw_id_db)
-
-
-
-    #first_draw_id = (get_draws(game=game[0], order='ASC'))
 
     print(last_draw_id)
 
     if last_draw_id_db is None:
         pass  # get and load all
 
-    # print(chunks_generator(last_draw_id))
     else:
         if last_draw_id < last_draw_id_db:
             print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
@@ -205,6 +203,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
                         if not db_obj.table_exists(game_subtype_name_sc):
+                            db_obj.insert_new_subgame(game, results['gameType'])
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
@@ -232,13 +231,8 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                 db_obj.load_super_szansa_rel(super_szansa_rel_dict)
             db_obj.load_data(games_dict)
 
-
 # after loads check and delete null values for ids
-# check if in games is not null
 # check if gae table exists if not initialise wih main games name
-# send info if new subgame appears, update games table with N - new game (moderation game status to Sub or Main by hand,
-# depend on game type if is standalone or only with )
-# status, add statuses M - main game, S - subgame, A - exists only with another games eg. SuperSzansa)
 
 # draw_qty = last_draw_id - first_draw_id on system update
 # Traceback(most recent call last):

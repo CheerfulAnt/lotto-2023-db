@@ -109,9 +109,20 @@ class DB:
     def get_games(self):
         cur = self.conn.cursor()
 
-        cur.execute('SELECT game_name FROM games')
+        cur.execute("SELECT game_name FROM games WHERE game_status='M'")
         games = cur.fetchall()
 
+        cur.close()
+
+        return games
+
+    def insert_new_subgame(self, game, subgame):
+        cur = self.conn.cursor()
+
+        cur.execute(f"INSERT INTO games (game_name, subgame_name, game_status) VALUES ({game}, {subgame}, 'S')")
+        games = cur.fetchall()
+
+        self.conn.commit()
         cur.close()
 
         return games
@@ -127,10 +138,29 @@ class DB:
 
         return draw_id_exists
 
+    def del_null_draw_id(self, game):
+        cur = self.conn.cursor()
+
+        cur.execute(f'DELETE FROM {game} where draw_id is null ;')
+
+        draw_id_exists = cur.fetchone()[0]
+
+        cur.close()
+
+        return draw_id_exists
+
+
+        pass
+
+    def del_dup(self):
+        pass
+
 
 # CREATE TABLE IF NOT EXISTS games(
 #                             id INT primary key GENERATED ALWAYS AS IDENTITY,
-#                             game_name      TEXT        NULL);
+#                             game_name      TEXT        NULL,
+#                             subgame_name   TEXT        NULL,
+#                             game_status    CHAR        NULL);
 
 # CREATE TABLE IF NOT EXISTS super_szansa_rel(
 #                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
