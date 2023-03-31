@@ -130,8 +130,6 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
 
 db_obj = dbq.DB()
 
-# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
-
 # fetch and load results into database, tested on Lotto and EkstraPensja
 
 games = db_obj.get_games()
@@ -192,11 +190,9 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
             draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
 
-            #print(draws_data)
-
             for item in draws_data['items']:
 
-                for results in item['results']:      # underscore one time variable
+                for results in item['results']:
 
                     if results['gameType'] not in games_dict:
                         games_dict[results['gameType']] = []
@@ -231,6 +227,12 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                 db_obj.load_super_szansa_rel(super_szansa_rel_dict)
             db_obj.load_data(games_dict)
 
+
+# underscore one time variable
+# autocommit
+# one function to all queries ????
+# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
+# clean database only when stats and dumps or on first fetch or check on load ????/?????? on load!!!!!!!!
 # after loads check and delete null values for ids
 # check if gae table exists if not initialise wih main games name
 

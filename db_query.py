@@ -160,7 +160,8 @@ class DB:
 #                             id INT primary key GENERATED ALWAYS AS IDENTITY,
 #                             game_name      TEXT        NULL,
 #                             subgame_name   TEXT        NULL,
-#                             game_status    CHAR        NULL);
+#                             game_status    CHAR        NULL,
+#                             retry          BOOL        NULL);
 
 # CREATE TABLE IF NOT EXISTS super_szansa_rel(
 #                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
