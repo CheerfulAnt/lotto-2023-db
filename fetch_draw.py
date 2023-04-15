@@ -204,7 +204,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         if not db_obj.table_exists(game_subtype_name_sc):
                             # print(game[0], results['gameType'])
 
-                            db_obj.insert_new_subgame(game[0], results['gameType'])
+                            db_obj.insert_new_subgame(game[0], results['gameType']) # !!!! Check if main and sub exist, so that it doesn't add every run
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
@@ -212,6 +212,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                     draw_time = date_time_obj.strftime('%H:%M:%S')
 
                     if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
+                        # if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']): # to consider, slower but clean data
                         games_dict[results['gameType']].append(
                             (item['gameType'], item['drawSystemId'], results['gameType'],
                              results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
