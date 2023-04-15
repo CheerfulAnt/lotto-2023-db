@@ -202,7 +202,9 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
                         if not db_obj.table_exists(game_subtype_name_sc):
-                            db_obj.insert_new_subgame(game, results['gameType'])
+                            # print(game[0], results['gameType'])
+
+                            db_obj.insert_new_subgame(game[0], results['gameType'])
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
