@@ -99,7 +99,7 @@ class DB:
     def load_super_szansa_rel(self, rel_dict):
         cur = self.conn.cursor()
 
-        with cur.copy(f"COPY {underscore('SuperSzansa')} (main_draw_name, main_draw_id, draw_name, draw_id") as copy:
+        with cur.copy(f"COPY super_szansa_rel (main_draw_name, main_draw_id, draw_name, draw_id) FROM STDIN") as copy:
             for record in rel_dict['SuperSzansa']:
                 copy.write_row(record)
 
@@ -119,13 +119,11 @@ class DB:
     def insert_new_subgame(self, game, subgame):
         cur = self.conn.cursor()
 
-        cur.execute(f"INSERT INTO games (game_name, subgame_name, game_status) VALUES ({game}, {subgame}, 'S')")
-        games = cur.fetchall()
+        cur.execute(f"INSERT INTO games (game_name, subgame_name, game_status) VALUES ('{game}', '{subgame}', 'S')")
 
         self.conn.commit()
         cur.close()
 
-        return games
 
     def draw_id_exists(self, draw_name, draw_id):
         cur = self.conn.cursor()
