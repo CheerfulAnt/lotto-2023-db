@@ -11,6 +11,9 @@
 	},
 	"game_type": [
 		"Lotto",
-		"EkstraPremia"
+		"EkstraPensja",
+		"EkstraPremia",
+		"LottoPlus",
+		"SuperSzansa"
 	]
 }

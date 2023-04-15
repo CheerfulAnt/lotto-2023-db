@@ -53,7 +53,9 @@ class DB:
 
         cur.execute(f'''CREATE TABLE IF NOT EXISTS {table_name}(
                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
+                                main_draw_name TEXT NULL,
                                 main_draw_id INT  NULL,
+                                draw_name TEXT NULL,
                                 draw_id    INT    NULL,
                                 draw_date   DATE     NULL,
                                 draw_time   TIME     NULL,
@@ -73,10 +75,10 @@ class DB:
 
         cur.close()
 
-    def check_last_draw_db(self, game):
+    def last_main_draw_id_db(self, game):
         cur = self.conn.cursor()
 
-        cur.execute(f'SELECT MAX(draw_id) FROM {game};')
+        cur.execute(f'SELECT MAX(main_draw_id) FROM {game};')
         last_draw_id = cur.fetchone()
 
         cur.close()
@@ -87,27 +89,83 @@ class DB:
         cur = self.conn.cursor()
 
         for game in games_dict.keys():
-            with cur.copy(f"COPY {underscore(game)} (main_draw_id, draw_id, draw_date, draw_time, results, special_results) FROM STDIN") as copy:
+            with cur.copy(f"COPY {underscore(game)} (main_draw_name, main_draw_id, draw_name, draw_id, draw_date, draw_time, results, special_results) FROM STDIN") as copy:
                 for record in games_dict[game]:
                     copy.write_row(record)
 
         self.conn.commit()
         cur.close()
 
+    def load_super_szansa_rel(self, rel_dict):
+        cur = self.conn.cursor()
+
+        with cur.copy(f"COPY {underscore('SuperSzansa')} (main_draw_name, main_draw_id, draw_name, draw_id") as copy:
+            for record in rel_dict['SuperSzansa']:
+                copy.write_row(record)
+
+        self.conn.commit()
+        cur.close()
+
     def get_games(self):
         cur = self.conn.cursor()
-        table_exists_dict = dict()
 
-        cur.execute('SELECT game_name, game_last_draw FROM games')
+        cur.execute("SELECT game_name FROM games WHERE game_status='M'")
         games = cur.fetchall()
+
         cur.close()
 
         return games
 
+    def insert_new_subgame(self, game, subgame):
+        cur = self.conn.cursor()
+
+        cur.execute(f"INSERT INTO games (game_name, subgame_name, game_status) VALUES ({game}, {subgame}, 'S')")
+        games = cur.fetchall()
+
+        self.conn.commit()
+        cur.close()
+
+        return games
+
+    def draw_id_exists(self, draw_name, draw_id):
+        cur = self.conn.cursor()
+
+        cur.execute(f'SELECT EXISTS(SELECT id FROM {draw_name} WHERE draw_id={draw_id})')
+
+        draw_id_exists = cur.fetchone()[0]
+
+        cur.close()
+
+        return draw_id_exists
+
+    def del_null_draw_id(self, game):
+        cur = self.conn.cursor()
+
+        cur.execute(f'DELETE FROM {game} where draw_id is null ;')
+
+        draw_id_exists = cur.fetchone()[0]
+
+        cur.close()
+
+        return draw_id_exists
+
+
+        pass
+
+    def del_dup(self):
+        pass
 
 
 # CREATE TABLE IF NOT EXISTS games(
-#                             game_id        SERIAL    NOT NULL,
-#                             game_name      DATE        NULL,
-#                             game_last_draw INT         NULL,
-#                          PRIMARY KEY(game_id));
+#                             id INT primary key GENERATED ALWAYS AS IDENTITY,
+#                             game_name      TEXT        NULL,
+#                             subgame_name   TEXT        NULL,
+#                             game_status    CHAR        NULL,
+#                             retry          BOOL        NULL);
+
+# CREATE TABLE IF NOT EXISTS super_szansa_rel(
+#                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
+#                                 main_draw_name TEXT NULL,
+#                                 main_draw_id INT  NULL,
+#                                 draw_name TEXT NULL,
+#                                 draw_id    INT    NULL);

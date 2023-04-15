@@ -14,7 +14,6 @@ import db_query as dbq
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
-import json
 import requests
 from datetime import datetime
 from inflection import underscore
@@ -74,9 +73,6 @@ def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', ge
     return game_data
 
 
-# to!do:  !!! sort=drawSystemId, super szansa LOTTO check if was another subgames (when het and parse) !!
-# desc if load new draws and ASC when initial load
-
 def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
     chunks_list = list()
 
@@ -134,67 +130,117 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
 
 db_obj = dbq.DB()
 
-# to!do instead of a separate table check from the game table
-
-# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
-# messy query results
-# after add new master game
-
 # fetch and load results into database, tested on Lotto and EkstraPensja
 
 games = db_obj.get_games()
 
+
 games_dict = dict()
+super_szansa_rel_dict = dict()
+
+print('games', games)
+
 
 for game in games:  # lotto order little messy, doesn't start from first draw
 
-    last_draw_id = (get_draws(game=game[0], order='DESC'))
-    first_draw_id = (get_draws(game=game[0], order='ASC'))
 
-    draw_qty = last_draw_id - first_draw_id
+    last_draw_id = (get_draws(game=game, order='DESC'))
 
-    # last_draw_id = 6859
+    print('last_draw_id 1', last_draw_id)
 
-    if game[1] is None:
+    if last_draw_id is None:  # if results are fresh, null can appears in lotto last results to!do: retry fetch after time set in .env.shared
+        print('last_draw_id', last_draw_id)
+        continue
+
+    if not db_obj.table_exists(underscore(game[0])):
+        last_draw_id_db = 0
+    else:
+        last_draw_id_db = db_obj.last_main_draw_id_db(underscore(game[0]))
+
+    print(last_draw_id_db)
+
+    # break
+
+    print('game', game[0])
+    print(last_draw_id_db)
+
+    print(last_draw_id)
+
+    if last_draw_id_db is None:
         pass  # get and load all
 
-    # print(chunks_generator(last_draw_id))
     else:
-        if last_draw_id < game[1]:
+        if last_draw_id < last_draw_id_db:
             print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
             id_to_get = None
-        elif last_draw_id > game[1]:
-            id_to_get = last_draw_id - game[1]
-        elif last_draw_id == game[1]:
+        elif last_draw_id > last_draw_id_db:
+            id_to_get = last_draw_id - last_draw_id_db
+            print('id_to_get', id_to_get)
+        elif last_draw_id == last_draw_id_db:
             print('Nothing to do...')
-            id_to_get = None
-            break
+            id_to_get = 0
         else:
             print('EventReport')  # !!!!!!!!!!!!!!!!!!!!
             id_to_get = None
 
-        chunks = chunks_generator(draw_qty, order='ASC')
+        chunks = chunks_generator(id_to_get, order='ASC')
+
+        print('chunks:', chunks)
 
         for chunk in chunks:
             games_dict.clear()
+            super_szansa_rel_dict.clear()
 
             draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
 
             for item in draws_data['items']:
 
                 for results in item['results']:
+
                     if results['gameType'] not in games_dict:
                         games_dict[results['gameType']] = []
+                        super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
-                        if not db_obj.table_exists(game_subtype_name_sc):  # to!do insert new game name to game table
+                        if not db_obj.table_exists(game_subtype_name_sc):
+                            db_obj.insert_new_subgame(game, results['gameType'])
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
                     draw_date = date_time_obj.strftime('%Y-%m-%d')
                     draw_time = date_time_obj.strftime('%H:%M:%S')
 
-                    games_dict[results['gameType']].append(
-                        (item['drawSystemId'], results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
-                         results['specialResults']))
+                    if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
+                        games_dict[results['gameType']].append(
+                            (item['gameType'], item['drawSystemId'], results['gameType'],
+                             results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                             results['specialResults']))
 
+                    if results['gameType'] == 'SuperSzansa' and results['drawSystemId'] is not None:     # SuperSzansa exists only with another games
+                        if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']):
+                            games_dict[results['gameType']].append(
+                                (item['gameType'], item['drawSystemId'], results['gameType'],
+                                 results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                                 results['specialResults']))
+                        super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
+                                                                    results['gameType'], results['drawSystemId']))
+
+            print('games_dict', games_dict)
+            print('super_szansa_rel', super_szansa_rel_dict)
+            if len(super_szansa_rel_dict['SuperSzansa']) > 0:
+                db_obj.load_super_szansa_rel(super_szansa_rel_dict)
             db_obj.load_data(games_dict)
+
+
+# underscore one time variable
+# autocommit
+# one function to all queries ????
+# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
+# clean database only when stats and dumps or on first fetch or check on load ????/?????? on load!!!!!!!!
+# after loads check and delete null values for ids
+# check if gae table exists if not initialise wih main games name
+
+# draw_qty = last_draw_id - first_draw_id on system update
+# Traceback(most recent call last):
+# File     "/home/kate/PycharmProjects/lotto-2023-db/fetch_draw.py", line
+# 154, in < module >  draw_qty = last_draw_id - first_draw_id TypeError: unsupported operand
+# type(s)for -: 'int' and 'NoneType'
