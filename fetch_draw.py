@@ -146,7 +146,10 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
     last_draw_id = (get_draws(game=game, order='DESC'))
 
+    print('last_draw_id 1', last_draw_id)
+
     if last_draw_id is None:  # if results are fresh, null can appears in lotto last results to!do: retry fetch after time set in .env.shared
+        print('last_draw_id', last_draw_id)
         continue
 
     if not db_obj.table_exists(underscore(game[0])):
@@ -156,7 +159,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
     print(last_draw_id_db)
 
-    break
+    # break
 
     print('game', game[0])
     print(last_draw_id_db)
@@ -182,7 +185,7 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
         chunks = chunks_generator(id_to_get, order='ASC')
 
-        print(chunks)
+        print('chunks:', chunks)
 
         for chunk in chunks:
             games_dict.clear()
