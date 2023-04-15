@@ -240,6 +240,8 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 # clean database only when stats and dumps or on first fetch or check on load ????/?????? on load!!!!!!!!
 # after loads check and delete null values for ids
 # check if gae table exists if not initialise wih main games name
+# check if main games exists or from json create tables for db initialization - super_sansa_rel and games
+
 
 # draw_qty = last_draw_id - first_draw_id on system update
 # Traceback(most recent call last):
