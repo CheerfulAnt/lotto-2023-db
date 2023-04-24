@@ -37,6 +37,16 @@ class DB:
         else:
             print('\033[91mConnection FAILED.\033[0m')
 
+    def get_tables(self):
+        cur = self.conn.cursor()
+
+        cur.execute("SELECT table_name FROM information_schema.tables where table_schema='public';")
+        tables = cur.fetchall()
+
+        cur.close()
+
+        return tables
+
     def table_exists(self, table_name):
         cur = self.conn.cursor()
 
@@ -47,6 +57,35 @@ class DB:
         cur.close()
 
         return table_exists
+
+    def table_create_games(self, table_name):
+        cur = self.conn.cursor()
+
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS games(
+                            id INT primary key GENERATED ALWAYS AS IDENTITY,
+                            game_name      TEXT        NULL,
+                            subgame_name   TEXT        NULL,
+                            game_status    CHAR        NULL,
+                            retry          BOOL        NULL);''')
+        self.conn.commit()
+
+        print(f'\033[32mTable\033[0m \033[34mgames\033[0m \033[32mcreated.\033[0m')
+        cur.close()
+
+    def table_create_super_szansa_rel(self):
+        cur = self.conn.cursor()
+
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS super_szansa_rel(
+                                id INT  primary key GENERATED ALWAYS AS IDENTITY,
+                                main_draw_name TEXT NULL,
+                                main_draw_id INT  NULL,
+                                draw_name TEXT NULL,
+                                draw_id    INT    NULL);''')
+        self.conn.commit()
+
+        print(f'\033[32mTable\033[0m \033[34msuper_szansa_rel\033[0m \033[32mcreated.\033[0m')
+        cur.close()
+
 
     def table_create(self, table_name):
         cur = self.conn.cursor()
@@ -146,24 +185,3 @@ class DB:
         cur.close()
 
         return draw_id_exists
-
-
-        pass
-
-    def del_dup(self):
-        pass
-
-
-# CREATE TABLE IF NOT EXISTS games(
-#                             id INT primary key GENERATED ALWAYS AS IDENTITY,
-#                             game_name      TEXT        NULL,
-#                             subgame_name   TEXT        NULL,
-#                             game_status    CHAR        NULL,
-#                             retry          BOOL        NULL);
-
-# CREATE TABLE IF NOT EXISTS super_szansa_rel(
-#                                 id INT  primary key GENERATED ALWAYS AS IDENTITY,
-#                                 main_draw_name TEXT NULL,
-#                                 main_draw_id INT  NULL,
-#                                 draw_name TEXT NULL,
-#                                 draw_id    INT    NULL);

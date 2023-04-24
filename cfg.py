@@ -52,28 +52,10 @@ with open(config['DRAW_CONFIG'], 'r', encoding=config['ENCODING']) as j_file:
 with open(config['REQUESTS_JSON'], 'r', encoding=config['ENCODING']) as j_file:
     requests_json = load(j_file)
 
-# prepare lists with game names, *_sc - lower case & snake case names for DB
+mandatory_tables = tuple(draw_config_json['mandatory_tables'])
 
-games = tuple(draw_config_json['game_type'])
+main_games = tuple(draw_config_json['main_games'])
 
-# game_dict = dict()
-# game_sub_tuple = tuple()
-# game_type_list = list()
-# game_subtype_list = list()
-# game_type_list_sc = list()
-# game_subtype_list_sc = list()
+print(mandatory_tables)
 
-# for key in draw_config_json['game_type'].keys():
-#
-#     game_type_list.append(key)
-#     game_type_list_sc.append(underscore(key))
-#
-#     for sub_key in draw_config_json['game_type'][key]['game_subtype'].keys():
-#         game_subtype_list.append(sub_key)
-#         game_subtype_list_sc.append(underscore(sub_key))
-#         game_sub_tuple = game_sub_tuple + (underscore(sub_key), )
-#
-#     game_dict[key] = game_sub_tuple
-#     game_sub_tuple = tuple()
-
-print(games)
+print(main_games)

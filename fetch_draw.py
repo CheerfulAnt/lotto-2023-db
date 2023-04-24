@@ -159,8 +159,6 @@ for game in games:  # lotto order little messy, doesn't start from first draw
 
     print(last_draw_id_db)
 
-    # break
-
     print('game', game[0])
     print(last_draw_id_db)
 
@@ -232,20 +230,3 @@ for game in games:  # lotto order little messy, doesn't start from first draw
             if len(super_szansa_rel_dict['SuperSzansa']) > 0:
                 db_obj.load_super_szansa_rel(super_szansa_rel_dict)
             db_obj.load_data(games_dict)
-
-
-# underscore one time variable
-# autocommit
-# one function to all queries ????
-# after initial update clean tables, none values, remove duplicates, 'subgames' draws can appear in another 'main draws'
-# clean database only when stats and dumps or on first fetch or check on load ????/?????? on load!!!!!!!!
-# after loads check and delete null values for ids
-# check if gae table exists if not initialise wih main games name
-# check if main games exists or from json create tables for db initialization - super_sansa_rel and games
-
-
-# draw_qty = last_draw_id - first_draw_id on system update
-# Traceback(most recent call last):
-# File     "/home/kate/PycharmProjects/lotto-2023-db/fetch_draw.py", line
-# 154, in < module >  draw_qty = last_draw_id - first_draw_id TypeError: unsupported operand
-# type(s)for -: 'int' and 'NoneType'

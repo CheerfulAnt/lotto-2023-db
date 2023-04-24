@@ -9,11 +9,13 @@
 		"sort": "drawSystemId",
 		"order": "DESC"
 	},
-	"game_type": [
+	"mandatory_tables": [
+		"games",
+		"super_szansa_rel"
+	],
+	"main_games": [
 		"Lotto",
-		"EkstraPensja",
-		"EkstraPremia",
-		"LottoPlus",
-		"SuperSzansa"
+		"MiniLotto",
+		"EkstraPensja"
 	]
 }
