@@ -27,15 +27,6 @@ if sys.version_info < (3, 10):
 
 print()
 
-# verbose or silent mode -> log to app.log
-# deamon mode, to!do cron process checking
-# daemon mode -> run x time after draw
-# 1 retry after null value, after 15 min
-# global update at 00:00
-
-
-# python cli params - verbose daemon ect.
-
 print('Checking Lotto API Endpoint...')     # !!!!!!!!!
 
 print('Checking database connection...')
