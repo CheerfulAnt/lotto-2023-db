@@ -155,6 +155,17 @@ class DB:
 
         return games
 
+    def count_subgames(self, game, subgame):
+        cur = self.conn.cursor()
+
+        cur.execute(f"SELECT count(*) FROM games where game_name='{game}' and subgame_name='{subgame}';")
+
+        subgames_qty = cur.fetchone()[0]
+
+        cur.close()
+
+        return subgames_qty
+
     def insert_new_subgame(self, game, subgame):
         cur = self.conn.cursor()
 

@@ -137,19 +137,20 @@ games = db_obj.get_games()
 
 games_dict = dict()
 super_szansa_rel_dict = dict()
+game_draw_id_null = list()
 
 print('games', games)
 
 
 for game in games:  # lotto order little messy, doesn't start from first draw
 
-
     last_draw_id = (get_draws(game=game, order='DESC'))
 
     print('last_draw_id 1', last_draw_id)
 
-    if last_draw_id is None:  # if results are fresh, null can appears in lotto last results to!do: retry fetch after time set in .env.shared
+    if last_draw_id is None:  # if results are fresh, null can appears in lotto last results
         print('last_draw_id', last_draw_id)
+        game_draw_id_null.append(game) # !!! retry fetch after time set in .env.shared
         continue
 
     if not db_obj.table_exists(underscore(game[0])):
@@ -200,9 +201,11 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                         super_szansa_rel_dict['SuperSzansa'] = []
                         game_subtype_name_sc = underscore(results['gameType'])
                         if not db_obj.table_exists(game_subtype_name_sc):
-                            # print(game[0], results['gameType'])
 
-                            db_obj.insert_new_subgame(game[0], results['gameType']) # !!!! Check if main and sub exist, so that it doesn't add every run
+                            if db_obj.count_subgames(game[0], results['gameType']) == 0: # check if main game and subgame doesn't exist in games table
+                                db_obj.insert_new_subgame(game[0], results['gameType'])
+                                # !!! report new game
+
                             db_obj.table_create(game_subtype_name_sc)
 
                     date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
@@ -210,11 +213,11 @@ for game in games:  # lotto order little messy, doesn't start from first draw
                     draw_time = date_time_obj.strftime('%H:%M:%S')
 
                     if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
-                        # if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']): # to consider, slower but clean data
-                        games_dict[results['gameType']].append(
-                            (item['gameType'], item['drawSystemId'], results['gameType'],
-                             results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
-                             results['specialResults']))
+                        if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']):     # check in db if draw not exist
+                            games_dict[results['gameType']].append(
+                                (item['gameType'], item['drawSystemId'], results['gameType'],
+                                 results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                                 results['specialResults']))
 
                     if results['gameType'] == 'SuperSzansa' and results['drawSystemId'] is not None:     # SuperSzansa exists only with another games
                         if not db_obj.draw_id_exists(underscore(results['gameType']), results['drawSystemId']):
