@@ -22,7 +22,7 @@ from inflection import underscore
 # function check_last_draw() checks last draw id for games from lotto website. (or get range)
 
 
-def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', get_id=True):
+def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', get_id=True, response_status_code=False):
     # get data to build request
 
     base_url = cfg.draw_config_json['base_url']
@@ -37,6 +37,9 @@ def get_draws(game=cfg.config['DEFAULT_GAME'], index=1, size=1, order='DESC', ge
     # get last draw
 
     response = requests.get(base_url, headers=headers, params=params)
+
+    if response_status_code:
+        return response.status_code
 
     # check response.status_code, if not 200, raise Exception - CustomError
 
@@ -128,112 +131,114 @@ def chunks_generator(number, chunk=cfg.config['CHUNK_SIZE'], order='ASC'):
     return chunks_list
 
 
-db_obj = dbq.DB()
+def load_data():
 
-# fetch and load results into database, tested on Lotto and EkstraPensja
+    db_obj = dbq.DB()
 
-games = db_obj.get_games()
+    # fetch and load results into database, tested on Lotto and EkstraPensja
 
-
-games_dict = dict()
-super_szansa_rel_dict = dict()
-game_draw_id_null = list()
-
-print('games', games)
+    games = db_obj.get_games()
 
 
-for game in games:  # lotto order little messy, doesn't start from first draw
+    games_dict = dict()
+    super_szansa_rel_dict = dict()
+    game_draw_id_null = list()
 
-    last_draw_id = (get_draws(game=game, order='DESC'))
+    print('games', games)
 
-    print('last_draw_id 1', last_draw_id)
 
-    if last_draw_id is None:  # if results are fresh, null can appears in lotto last results
-        print('last_draw_id', last_draw_id)
-        game_draw_id_null.append(game) # !!! retry fetch after time set in .env.shared
-        continue
+    for game in games:  # lotto order little messy, doesn't start from first draw
 
-    game_name_sc = underscore(game[0])
+        last_draw_id = (get_draws(game=game, order='DESC'))
 
-    if not db_obj.table_exists(game_name_sc):
-        last_draw_id_db = 0
-    else:
-        last_draw_id_db = db_obj.last_main_draw_id_db(game_name_sc)
+        print('last_draw_id 1', last_draw_id)
 
-    print(last_draw_id_db)
+        if last_draw_id is None:  # if results are fresh, null can appears in lotto last results
+            print('last_draw_id', last_draw_id)
+            game_draw_id_null.append(game) # !!! retry fetch after time set in .env.shared
+            continue
 
-    print('game', game[0])
-    print(last_draw_id_db)
+        game_name_sc = underscore(game[0])
 
-    print(last_draw_id)
-
-    if last_draw_id_db is None:
-        pass  # get and load all
-
-    else:
-        if last_draw_id < last_draw_id_db:
-            print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
-            id_to_get = None
-        elif last_draw_id > last_draw_id_db:
-            id_to_get = last_draw_id - last_draw_id_db
-            print('id_to_get', id_to_get)
-        elif last_draw_id == last_draw_id_db:
-            print('Nothing to do...')
-            id_to_get = 0
+        if not db_obj.table_exists(game_name_sc):
+            last_draw_id_db = 0
         else:
-            print('EventReport')  # !!!!!!!!!!!!!!!!!!!!
-            id_to_get = None
+            last_draw_id_db = db_obj.last_main_draw_id_db(game_name_sc)
 
-        chunks = chunks_generator(id_to_get, order='ASC')
+        print(last_draw_id_db)
 
-        print('chunks:', chunks)
+        print('game', game[0])
+        print(last_draw_id_db)
 
-        for chunk in chunks:
-            games_dict.clear()
-            super_szansa_rel_dict.clear()
+        print(last_draw_id)
 
-            draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
+        if last_draw_id_db is None:
+            pass  # get and load all
 
-            for item in draws_data['items']:
+        else:
+            if last_draw_id < last_draw_id_db:
+                print('Something goes wrong !!! EventReport')  # !!!!!!!!!!!!!!!!!!!!
+                id_to_get = None
+            elif last_draw_id > last_draw_id_db:
+                id_to_get = last_draw_id - last_draw_id_db
+                print('id_to_get', id_to_get)
+            elif last_draw_id == last_draw_id_db:
+                print('Nothing to do...')
+                id_to_get = 0
+            else:
+                print('EventReport')  # !!!!!!!!!!!!!!!!!!!!
+                id_to_get = None
 
-                for results in item['results']:
+            chunks = chunks_generator(id_to_get, order='ASC')
 
-                    game_subtype_name_sc = underscore(results['gameType'])
+            print('chunks:', chunks)
 
-                    if results['gameType'] not in games_dict:
-                        games_dict[results['gameType']] = []
-                        super_szansa_rel_dict['SuperSzansa'] = []
-                        # game_subtype_name_sc = underscore(results['gameType'])
-                        if not db_obj.table_exists(game_subtype_name_sc):
+            for chunk in chunks:
+                games_dict.clear()
+                super_szansa_rel_dict.clear()
 
-                            if db_obj.count_subgames(game[0], results['gameType']) == 0: # check if main game and subgame doesn't exist in games table
-                                db_obj.insert_new_subgame(game[0], results['gameType'])
-                                # !!! report new game
+                draws_data = get_draws(game[0], index=chunk[0], size=chunk[1], order='DESC', get_id=False)
 
-                            db_obj.table_create(game_subtype_name_sc)
+                for item in draws_data['items']:
 
-                    date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
-                    draw_date = date_time_obj.strftime('%Y-%m-%d')
-                    draw_time = date_time_obj.strftime('%H:%M:%S')
+                    for results in item['results']:
 
-                    if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
-                        if not db_obj.draw_id_exists(game_subtype_name_sc, results['drawSystemId']):     # check in db if draw not exist
-                            games_dict[results['gameType']].append(
-                                (item['gameType'], item['drawSystemId'], results['gameType'],
-                                 results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
-                                 results['specialResults']))
+                        game_subtype_name_sc = underscore(results['gameType'])
 
-                    if results['gameType'] == 'SuperSzansa' and results['drawSystemId'] is not None:     # SuperSzansa exists only with another games
-                        if not db_obj.draw_id_exists(game_subtype_name_sc, results['drawSystemId']):
-                            games_dict[results['gameType']].append(
-                                (item['gameType'], item['drawSystemId'], results['gameType'],
-                                 results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
-                                 results['specialResults']))
-                        super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
-                                                                    results['gameType'], results['drawSystemId']))
+                        if results['gameType'] not in games_dict:
+                            games_dict[results['gameType']] = []
+                            super_szansa_rel_dict['SuperSzansa'] = []
+                            # game_subtype_name_sc = underscore(results['gameType'])
+                            if not db_obj.table_exists(game_subtype_name_sc):
 
-            print('games_dict', games_dict)
-            print('super_szansa_rel', super_szansa_rel_dict)
-            if len(super_szansa_rel_dict['SuperSzansa']) > 0:
-                db_obj.load_super_szansa_rel(super_szansa_rel_dict)
-            db_obj.load_data(games_dict)
+                                if db_obj.count_subgames(game[0], results['gameType']) == 0: # check if main game and subgame doesn't exist in games table
+                                    db_obj.insert_new_subgame(game[0], results['gameType'])
+                                    # !!! report new game
+
+                                db_obj.table_create(game_subtype_name_sc)
+
+                        date_time_obj = datetime.strptime(results['drawDate'], '%Y-%m-%dT%H:%M:%SZ')
+                        draw_date = date_time_obj.strftime('%Y-%m-%d')
+                        draw_time = date_time_obj.strftime('%H:%M:%S')
+
+                        if results['gameType'] != 'SuperSzansa' and results['drawSystemId'] is not None:
+                            if not db_obj.draw_id_exists(game_subtype_name_sc, results['drawSystemId']):     # check in db if draw not exist
+                                games_dict[results['gameType']].append(
+                                    (item['gameType'], item['drawSystemId'], results['gameType'],
+                                     results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                                     results['specialResults']))
+
+                        if results['gameType'] == 'SuperSzansa' and results['drawSystemId'] is not None:     # SuperSzansa exists only with another games
+                            if not db_obj.draw_id_exists(game_subtype_name_sc, results['drawSystemId']):
+                                games_dict[results['gameType']].append(
+                                    (item['gameType'], item['drawSystemId'], results['gameType'],
+                                     results['drawSystemId'], draw_date, draw_time, results['resultsJson'],
+                                     results['specialResults']))
+                            super_szansa_rel_dict['SuperSzansa'].append((item['gameType'], item['drawSystemId'],
+                                                                        results['gameType'], results['drawSystemId']))
+
+                print('games_dict', games_dict)
+                print('super_szansa_rel', super_szansa_rel_dict)
+                if len(super_szansa_rel_dict['SuperSzansa']) > 0:
+                    db_obj.load_super_szansa_rel(super_szansa_rel_dict)
+                db_obj.load_data(games_dict)

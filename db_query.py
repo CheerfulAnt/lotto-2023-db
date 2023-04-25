@@ -33,9 +33,9 @@ class DB:
 
     def conn_status(self):
         if hasattr(self, 'conn'):
-            print('\033[32mConnection OK.\033[0m')
+            return 0
         else:
-            print('\033[91mConnection FAILED.\033[0m')
+            return 1
 
     def get_tables(self):
         cur = self.conn.cursor()
