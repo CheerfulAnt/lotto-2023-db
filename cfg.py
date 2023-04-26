@@ -25,6 +25,7 @@ class ConfigCast(BaseModel):
     # .env.shared
     LOG_SIZE: int
     LOG_COUNT: int
+    SILENT_MODE: bool
     EXCEPTION_SHORT_SHOW: bool
     EXCEPTION_SHOW: bool
     EMAIL_ERROR_LOG: bool
@@ -55,7 +56,3 @@ with open(config['REQUESTS_JSON'], 'r', encoding=config['ENCODING']) as j_file:
 mandatory_tables = tuple(draw_config_json['mandatory_tables'])
 
 main_games = tuple(draw_config_json['main_games'])
-
-print(mandatory_tables)
-
-print(main_games)

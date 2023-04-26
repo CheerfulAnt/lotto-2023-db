@@ -22,7 +22,6 @@ import fetch_draw as fedr
 # ---------------------------------------------------------------------------
 import sys
 
-
 if sys.version_info < (3, 10):
     raise Exception('Tested only on Python 3.10 :-)')
 
@@ -50,9 +49,8 @@ else:
 print('Checking existing tables...')    # !!!!!!!!!
 tables_db = [item[0] for item in db_obj.get_tables()]
 
-# print('\033[34m', end='')
-# print(*tables_db, sep='|')
-# print('\033[0m', end='')
+aaa = list()
+
 
 if all([item in tables_db for item in cfg.mandatory_tables]):
     print('\033[32mAll mandatory tables exists.\033[0m ', end='')
@@ -61,12 +59,16 @@ if all([item in tables_db for item in cfg.mandatory_tables]):
     print(']\033[0m', end='\n')
     print('Proceeding to data fetching, be patient...')
     print('\033[32mData fetching completed. 2345434535 new records in database\033[0m')
-else: # !!! if mandatory tables not exist but tables with data exist, stop and send info  email to the further investigation
-      # if mandatory tables not exist create, and start fetching data
-    print('Seems as first run or problem with mandatory tables...')  # !!! check if first run, don't fetch 500k records xD
-    print('Deleting existing tables...')
-    # db_obj.table_drop(*cfg.game_subtype_list_sc)  # !!!!!!!!!
+
+elif not all([item in tables_db for item in cfg.mandatory_tables]) and len(tables_db) > 0:
+    print('\033[91mMandatory tables not found, but there are tables with the results, script aborted.\033[0m')
+    sys.exit()
+else:
+    print('Seems as first run, creating mandatory tables...')
     print('Be patient, fetching data in progress...')
+    print('Proceeding to data fetching, be patient...')
     print('\033[32mData fetching completed. 2345434535 new records in database\033[0m')
 
+
+# db_obj.table_drop(*cfg.game_subtype_list_sc)  # !!!!!!!!!
 
