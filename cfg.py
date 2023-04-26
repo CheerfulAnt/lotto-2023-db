@@ -25,7 +25,6 @@ class ConfigCast(BaseModel):
     # .env.shared
     LOG_SIZE: int
     LOG_COUNT: int
-    SILENT_MODE: bool
     EXCEPTION_SHORT_SHOW: bool
     EXCEPTION_SHOW: bool
     EMAIL_ERROR_LOG: bool

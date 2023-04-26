@@ -21,9 +21,24 @@ import fetch_draw as fedr
 # Imports
 # ---------------------------------------------------------------------------
 import sys
+import argparse
 
 if sys.version_info < (3, 10):
     raise Exception('Tested only on Python 3.10 :-)')
+
+parser = argparse.ArgumentParser()
+parser.parse_args()
+
+# -- to do - db updates --
+# daily - all games update - 00:00 or on script run
+# Lotto: Tuesdays, Thursdays and Saturdays at 22:00
+# Eurojackpot: On Fridays between 20.00 and 21.00 and on Tuesdays between 20:15 and 21:00
+# Keno: Every 4 minutes
+# Szybkie 600: Every 4 minutes
+# Multi Multi: Daily at 14:00 and 22:00
+# Ekstra Pensja: Daily at 22:00
+# Mini Lotto: Daily at 22:00
+# Kaskada: Daily at 14:00 and 22:00
 
 print()
 
